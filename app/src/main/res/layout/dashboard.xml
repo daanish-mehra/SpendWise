@@ -25,13 +25,44 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Content Area -->
-        <FrameLayout
+        <!-- Calendar Selector Icon -->
+        <ImageView
+            android:id="@+id/calendar_selector"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="16dp"
+            android:src="@android:drawable/ic_menu_my_calendar"
+            android:contentDescription="Select Date"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="#000000"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/dashboard_title"
+            app:layout_constraintBottom_toBottomOf="@id/dashboard_title" />
+
+        <!-- Logout Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/logout_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Logout"
+            android:textSize="12sp"
+            app:cornerRadius="8dp"
+            android:backgroundTint="#F5B5B5"
+            android:textColor="#000000"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/dashboard_title"
+            app:layout_constraintBottom_toBottomOf="@id/dashboard_title" />
+
+        <!-- Dashboard Content -->
+        <ScrollView
             android:id="@+id/dashboard_content"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="16dp"
             android:background="@android:color/white"
+            android:padding="16dp"
             app:layout_constraintTop_toBottomOf="@id/dashboard_title"
             app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
             app:layout_constraintStart_toStartOf="parent"
@@ -39,75 +70,71 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="8dp">
 
-                <LinearLayout
+                <!-- Current Date Display -->
+                <TextView
+                    android:id="@+id/current_date_display"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="end|center_vertical">
-
-                    <TextView
-                        android:id="@+id/current_date_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Current: YYYY-MM-DD"
-                        android:textColor="#444444"
-                        android:textSize="14sp"
-                        android:layout_marginEnd="8dp"/>
-
-                    <ImageView
-                        android:id="@+id/calendar_button"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_menu_my_calendar"
-                        android:contentDescription="Select current date"/>
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/weekly_total_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="This week: $0.00"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="16dp"/>
-
-                <TextView
-                    android:id="@+id/monthly_total_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="This month: $0.00"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginTop="8dp"/>
-
-                <TextView
-                    android:id="@+id/category_totals_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="By category:"
+                    android:text="Current Date: 2025-10-19"
                     android:textSize="14sp"
-                    android:layout_marginTop="16dp"/>
+                    android:textColor="#666666"
+                    android:layout_marginBottom="16dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/logout_button"
-                    android:layout_width="wrap_content"
+                <!-- Totals Section -->
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Logout"
-                    android:textAllCaps="false"
-                    android:layout_marginTop="24dp"
-                    app:cornerRadius="20dp"
-                    android:backgroundTint="#000000"
-                    android:textColor="@android:color/white"/>
+                    android:text="Overview"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/total_budget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Total Budget: $0.00"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/total_spent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Total Spent: $0.00"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/total_remaining"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Remaining: $0.00"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:layout_marginBottom="24dp" />
+
+                <!-- Category Summaries Section -->
+                <TextView
+                    android:id="@+id/category_summaries"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="By Category:\n\nNo data available"
+                    android:textSize="14sp"
+                    android:textColor="#000000"
+                    android:lineSpacingExtra="2dp" />
 
             </LinearLayout>
+        </ScrollView>
 
-        </FrameLayout>
-
-        <!-- Bottom Navi Bar -->
+        <!-- Bottom Navigation Bar -->
         <LinearLayout
             android:id="@+id/bottom_navigation"
             android:layout_width="0dp"
