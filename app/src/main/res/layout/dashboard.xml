@@ -25,7 +25,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Placheolder UI -->
+        <!-- Content Area -->
         <FrameLayout
             android:id="@+id/dashboard_content"
             android:layout_width="0dp"
@@ -37,13 +37,73 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Dashboard Content Goes Here"
-                android:textColor="#AAAAAA"
-                android:textSize="16sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="end|center_vertical">
+
+                    <TextView
+                        android:id="@+id/current_date_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Current: YYYY-MM-DD"
+                        android:textColor="#444444"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp"/>
+
+                    <ImageView
+                        android:id="@+id/calendar_button"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_menu_my_calendar"
+                        android:contentDescription="Select current date"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/weekly_total_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="This week: $0.00"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:layout_marginTop="16dp"/>
+
+                <TextView
+                    android:id="@+id/monthly_total_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="This month: $0.00"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:layout_marginTop="8dp"/>
+
+                <TextView
+                    android:id="@+id/category_totals_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="By category:"
+                    android:textSize="14sp"
+                    android:layout_marginTop="16dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/logout_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Logout"
+                    android:textAllCaps="false"
+                    android:layout_marginTop="24dp"
+                    app:cornerRadius="20dp"
+                    android:backgroundTint="#000000"
+                    android:textColor="@android:color/white"/>
+
+            </LinearLayout>
 
         </FrameLayout>
 
