@@ -1,89 +1,173 @@
 package com.example.spendwise.view;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.TextView;
 import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.spendwise.R;
 import com.example.spendwise.databinding.DashboardBinding;
-import com.example.spendwise.data.CurrentDateManager;
-import com.example.spendwise.data.ExpenseRepository;
-import com.google.android.material.datepicker.MaterialDatePicker;
+import com.example.spendwise.viewModel.DashboardViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.text.NumberFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
+import java.util.Map;
 
 public class Dashboard extends AppCompatActivity {
+
+    private DashboardViewModel viewModel;
+    private DashboardBinding binding;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Using data binding to inflate the layout
-        DashboardBinding binding = DashboardBinding.inflate(getLayoutInflater());
+        binding = DashboardBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        // Optional ViewModel setup
-        // binding.setVariable(BR.viewModel, viewModel); //Use the right view model
         binding.setLifecycleOwner(this);
 
-        // Use findViewById for buttons
+        viewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
+
+        setupObservers();
+        setupNavigation();
+        setupCalendarSelector();
+        setupLogoutButton();
+
+        // Initial data load
+        viewModel.refreshDashboard();
+    }
+
+    private void setupObservers() {
+        // Observe current date
+        viewModel.getCurrentDate().observe(this, date -> {
+            TextView dateDisplay = findViewById(R.id.current_date_display);
+            if (dateDisplay != null) {
+                dateDisplay.setText("Current Date: " + date);
+            }
+        });
+
+        // Observe total spent
+        viewModel.getTotalSpent().observe(this, spent -> {
+            TextView spentView = findViewById(R.id.total_spent);
+            if (spentView != null) {
+                spentView.setText(String.format("Total Spent: $%.2f", spent));
+            }
+        });
+
+        // Observe total budget
+        viewModel.getTotalBudget().observe(this, budget -> {
+            TextView budgetView = findViewById(R.id.total_budget);
+            if (budgetView != null) {
+                budgetView.setText(String.format("Total Budget: $%.2f", budget));
+            }
+        });
+
+        // Observe total remaining
+        viewModel.getTotalRemaining().observe(this, remaining -> {
+            TextView remainingView = findViewById(R.id.total_remaining);
+            if (remainingView != null) {
+                remainingView.setText(String.format("Remaining: $%.2f", remaining));
+            }
+        });
+
+        // Observe category summaries
+        viewModel.getCategorySummaries().observe(this, summaries -> {
+            updateCategorySummaries(summaries);
+        });
+
+        // Observe status messages
+        viewModel.getStatusMessage().observe(this, msg -> {
+            if (msg != null && !msg.isEmpty()) {
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateCategorySummaries(Map<String, DashboardViewModel.CategorySummary> summaries) {
+        TextView categoriesView = findViewById(R.id.category_summaries);
+        if (categoriesView != null && summaries != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("By Category:\n\n");
+            
+            for (DashboardViewModel.CategorySummary summary : summaries.values()) {
+                sb.append(String.format("%s:\n", summary.category));
+                sb.append(String.format("  Budgeted: $%.2f\n", summary.budgeted));
+                sb.append(String.format("  Spent: $%.2f\n", summary.spent));
+                sb.append(String.format("  Remaining: $%.2f\n\n", summary.remaining));
+            }
+            
+            categoriesView.setText(sb.toString());
+        }
+    }
+
+    private void setupCalendarSelector() {
+        View calendarIcon = findViewById(R.id.calendar_selector);
+        if (calendarIcon != null) {
+            calendarIcon.setOnClickListener(v -> showDatePicker());
+        }
+    }
+
+    private void showDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        
+        // Parse current date from ViewModel
+        String currentDate = viewModel.getCurrentDate().getValue();
+        if (currentDate != null) {
+            try {
+                calendar.setTime(dateFormat.parse(currentDate));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    calendar.set(year, month, dayOfMonth);
+                    String newDate = dateFormat.format(calendar.getTime());
+                    viewModel.setCurrentDate(newDate);
+                    Toast.makeText(this, "Date set to: " + newDate, Toast.LENGTH_SHORT).show();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+        
+        datePickerDialog.show();
+    }
+
+    private void setupLogoutButton() {
+        View logoutButton = findViewById(R.id.logout_button);
+        if (logoutButton != null) {
+            logoutButton.setOnClickListener(v -> {
+                FirebaseAuth.getInstance().signOut();
+                Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                
+                // Clear any cached data if needed
+                // Navigate back to login
+                Intent intent = new Intent(Dashboard.this, Login.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
+        }
+    }
+
+    private void setupNavigation() {
         View dashboardNavigate = findViewById(R.id.dashboard_navigate);
         View expenseLogNavigate = findViewById(R.id.expenseLog_navigate);
         View budgetNavigate = findViewById(R.id.budget_navigate);
         View savingCircleNavigate = findViewById(R.id.savingCircle_navigate);
         View chatbotNavigate = findViewById(R.id.chatbot_navigate);
 
-        // Dashboard controls
-        TextView currentDateText = findViewById(R.id.current_date_text);
-        View calendarButton = findViewById(R.id.calendar_button);
-        TextView weeklyTotalText = findViewById(R.id.weekly_total_text);
-        TextView monthlyTotalText = findViewById(R.id.monthly_total_text);
-        TextView categoryTotalsText = findViewById(R.id.category_totals_text);
-        View logoutButton = findViewById(R.id.logout_button);
-
-        ExpenseRepository repository = new ExpenseRepository();
-        NumberFormat currency = NumberFormat.getCurrencyInstance(Locale.getDefault());
-
-        // Initial date and totals
-        LocalDate current = CurrentDateManager.getCurrentDate(this);
-        currentDateText.setText("Current: " + CurrentDateManager.format(current));
-        refreshTotals(repository, currency, current, weeklyTotalText, monthlyTotalText, categoryTotalsText);
-
-        // Calendar date picker to set simulated current date
-        calendarButton.setOnClickListener(v -> {
-            MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
-                    .setTitleText("Select current date")
-                    .setSelection(CurrentDateManager.toStartOfDay(current).getTime())
-                    .build();
-
-            picker.addOnPositiveButtonClickListener(selection -> {
-                LocalDate newDate = Instant.ofEpochMilli(selection)
-                        .atZone(ZoneId.systemDefault()).toLocalDate();
-                CurrentDateManager.setCurrentDate(this, newDate);
-                currentDateText.setText("Current: " + CurrentDateManager.format(newDate));
-                refreshTotals(repository, currency, newDate, weeklyTotalText, monthlyTotalText, categoryTotalsText);
-            });
-            picker.show(getSupportFragmentManager(), "currentDatePicker");
-        });
-
-        // Logout
-        logoutButton.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(Dashboard.this, Login.class));
-            finish();
-        });
-
-        // Set click listeners using lambdas
         dashboardNavigate.setOnClickListener(v ->
                 startActivity(new Intent(Dashboard.this, Dashboard.class))
         );
@@ -104,40 +188,4 @@ public class Dashboard extends AppCompatActivity {
                 startActivity(new Intent(Dashboard.this, Chatbot.class))
         );
     }
-
-    private void refreshTotals(ExpenseRepository repository,
-                               NumberFormat currency,
-                               LocalDate current,
-                               TextView weeklyTarget,
-                               TextView monthlyTarget,
-                               TextView categoryTarget) {
-        Date weekStart = com.example.spendwise.data.CurrentDateManager.toStartOfDay(CurrentDateManager.startOfWeek(current));
-        Date weekEnd = com.example.spendwise.data.CurrentDateManager.toEndOfDay(CurrentDateManager.endOfWeek(current));
-        Date monthStart = com.example.spendwise.data.CurrentDateManager.toStartOfDay(CurrentDateManager.startOfMonth(current));
-        Date monthEnd = com.example.spendwise.data.CurrentDateManager.toEndOfDay(CurrentDateManager.endOfMonth(current));
-
-        repository.sumAmountBetween(weekStart, weekEnd).addOnSuccessListener(total -> {
-            weeklyTarget.setText("This week: " + currency.format(total));
-        });
-
-        repository.sumAmountBetween(monthStart, monthEnd).addOnSuccessListener(total -> {
-            monthlyTarget.setText("This month: " + currency.format(total));
-        });
-
-        repository.sumByCategoryBetween(monthStart, monthEnd).addOnSuccessListener(map -> {
-            if (map == null || map.isEmpty()) {
-                categoryTarget.setText("By category: none");
-                return;
-            }
-            StringBuilder sb = new StringBuilder("By category: ");
-            boolean first = true;
-            for (java.util.Map.Entry<String, Double> e : map.entrySet()) {
-                if (!first) sb.append("  •  ");
-                sb.append(e.getKey()).append(": ").append(currency.format(e.getValue()));
-                first = false;
-            }
-            categoryTarget.setText(sb.toString());
-        });
-    }
 }
-
