@@ -1,2 +1,2 @@
 aarushyadav47/CS2340_F25_Team11
-auth=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
+auth=
